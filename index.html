@@ -10,9 +10,11 @@
         }
 
         #pcscreen {
-            left: 0;
+            right: 0;
             top: 0;
             position: fixed;
+            width: 76.8vw;
+            height: 43.2vw;
         }
     </style>
 </head>
@@ -81,8 +83,20 @@
 
                 async function mainloop() {
                     try {
-                        const req = await fetch(url + "/ss?data=" + passwrd)
-                        console.log("im leaving")
+                        let req = await fetch(url + "/ss?data=" + passwrd,{
+                            headers: {
+                                "bypass-tunnel-reminder": "1"
+                            }
+                        })
+                        let urlman = URL.createObjectURL(await req.blob())
+
+                        pcscreen.src = urlman
+                        
+                        setTimeout(() => {
+                            URL.revokeObjectURL(urlman)
+                        },2000)
+
+                        req = null
                     } catch (err) {
                         console.log(err)
                     }
