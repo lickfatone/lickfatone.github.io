@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Title</title>
+</head>
+<body>
+    <input id="password">
+    <h1>Hello, World!</h1>
+    <p>This is a basic HTML template.</p>
+    <script>
+        const input = document.getElementById("password")
+
+        input.addEventListener("keydown", async function(event) {
+            if (event.key === "Enter") {
+                const val = input.value
+
+                const response = await fetch('http://localhost:8080/passy?data=' + val)
+
+                if (response.ok) {
+                    console.log("lesgo")
+                } else {
+                    input.value = "INCORRECT"
+                }
+            }
+        })
+    </script>
+</body>
+</html>
