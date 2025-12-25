@@ -21,7 +21,11 @@
             if (event.key === "Enter") {
                 const val = input.value
 
-                const response = await fetch('http://localhost:8080/passy?data=' + val)
+                const response = await fetch('http://localhost:8080/passy?data=' + val,{
+                    headers: {
+                        "bypass-tunnel-reminder": "1"
+                    }
+                })
 
                 if (response.ok) {
                     console.log("lesgo")
