@@ -8,32 +8,117 @@
         body {
             background-color: #2e2e2e;
         }
+
+        #pcscreen {
+            left: 0;
+            top: 0;
+            position: fixed;
+        }
     </style>
 </head>
 <body>
     <input id="password">
-    <h1>Hello, World!</h1>
-    <p>This is a basic HTML template.</p>
+    <div id="main" style="display: none;">
+        <button id="controlpc">Control PC</button>
+        <div id="controlpcarea">
+            <img id="pcscreen">
+        </div>
+    </div>
     <script>
-        const input = document.getElementById("password")
+        (async() => {
+            const input = document.getElementById("password")
+            const mainelem = document.getElementById("main")
+            const controlpc = document.getElementById("controlpc")
+            const pcscreen = document.getElementById("pcscreen")
 
-        input.addEventListener("keydown", async function(event) {
-            if (event.key === "Enter") {
-                const val = input.value
+            async function decrypt(token, password) {
+                const data = Uint8Array.from(atob(token), c => c.charCodeAt(0));
+                const salt = data.slice(0, 16);
+                const iv = data.slice(16, 28);
+                const ciphertext = data.slice(28);
 
-                const response = await fetch('http://localhost:8080/passy?data=' + val,{
-                    headers: {
-                        "bypass-tunnel-reminder": "1"
-                    }
-                })
+                const enc = new TextEncoder();
+                const dec = new TextDecoder();
 
-                if (response.ok) {
-                    console.log("lesgo")
-                } else {
-                    input.value = "INCORRECT"
+                const keyMaterial = await crypto.subtle.importKey(
+                    "raw",
+                    enc.encode(password),
+                    "PBKDF2",
+                    false,
+                    ["deriveKey"]
+                );
+
+                const key = await crypto.subtle.deriveKey(
+                    {
+                    name: "PBKDF2",
+                    salt,
+                    iterations: 200000,
+                    hash: "SHA-256"
+                    },
+                    keyMaterial,
+                    { name: "AES-GCM", length: 256 },
+                    false,
+                    ["decrypt"]
+                );
+
+                const plain = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv },
+                    key,
+                    ciphertext
+                );
+
+                return dec.decode(plain);
                 }
+
+            const resp = await (await fetch("https://raw.githubusercontent.com/lickfatone/lickfatone.github.io/refs/heads/main/idkanything.txt")).text()
+            console.log("here")
+
+            let isstarted = false
+
+            function main(url,passwrd) {
+                input.style.display = "none"
+                mainelem.style.display = "block"
+
+                async function mainloop() {
+                    try {
+                        const req = await fetch(url + "/ss?data=" + passwrd)
+                        console.log("im leaving")
+                    } catch (err) {
+                        console.log(err)
+                    }
+                    setTimeout(mainloop,1000)
+                }
+
+                mainloop()
             }
-        })
+
+            input.addEventListener("keydown", async function(event) {
+                if (event.key === "Enter" && isstarted == false) {
+                    const val = input.value
+
+                    try {
+                        const decoded = await decrypt(resp,val)
+                        isstarted = true
+                        main(decoded,val)
+                    } catch (error) {
+                        console.log(error)
+                        input.value = "INCORRECT"
+                    }
+
+                    /*const response = await fetch('http://localhost:8080/passy?data=' + val,{
+                        headers: {
+                            "bypass-tunnel-reminder": "1"
+                        }
+                    })
+
+                    if (response.ok) {
+                        console.log("lesgo")
+                    } else {
+                        input.value = "INCORRECT"
+                    }*/
+                }
+            })
+        })()
     </script>
 </body>
 </html>
